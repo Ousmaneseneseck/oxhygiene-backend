@@ -68,6 +68,42 @@ export class HealthService {
     });
   }
 
+  // Récupérer les dernières mesures de tous les types
+  async getLatestMeasures(userId: number) {
+    const measures = await this.getUserMeasures(userId);
+    const latest: any = {};
+    const types = ['tension', 'glycemie', 'cardiaque', 'temperature', 'oxygenation', 'poids'];
+    
+    for (const type of types) {
+      const typeMeasure = measures.find(m => m.type === type);
+      if (typeMeasure) {
+        latest[type] = typeMeasure.type === 'tension' 
+          ? `${typeMeasure.systolic}/${typeMeasure.diastolic}`
+          : typeMeasure.value;
+      }
+    }
+    return latest;
+  }
+
+  // Récupérer les statistiques d'un utilisateur
+  async getUserStats(userId: number) {
+    const measures = await this.getUserMeasures(userId);
+    const stats: any = {};
+    const types = ['tension', 'glycemie', 'cardiaque', 'temperature', 'oxygenation', 'poids'];
+    
+    for (const type of types) {
+      const typeMeasures = measures.filter(m => m.type === type);
+      if (typeMeasures.length > 0) {
+        stats[type] = {
+          count: typeMeasures.length,
+          last: typeMeasures[0]?.value || typeMeasures[0]?.systolic,
+          unit: typeMeasures[0]?.unit
+        };
+      }
+    }
+    return stats;
+  }
+
   // Récupérer les mesures dans une plage de dates
   async getMeasuresByDateRange(userId: number, startDate: Date, endDate: Date) {
     return this.healthRepository.find({
@@ -180,41 +216,5 @@ export class HealthService {
     });
     
     return counts;
-  }
-
-  // Récupérer les statistiques globales d'un patient
-  async getPatientStats(userId: number) {
-    const measures = await this.getUserMeasures(userId);
-    
-    const stats: Record<string, any> = {};
-    const types = ['tension', 'glycemie', 'cardiaque', 'temperature', 'oxygenation', 'poids'];
-    
-    for (const type of types) {
-      const typeMeasures = measures.filter(m => m.type === type);
-      if (typeMeasures.length > 0) {
-        let values: number[] = [];
-        typeMeasures.forEach(m => {
-          let val = 0;
-          if (type === 'tension' && m.systolic) {
-            val = parseFloat(m.systolic);
-          } else if (m.value) {
-            val = parseFloat(m.value);
-          }
-          if (!isNaN(val)) values.push(val);
-        });
-        
-        if (values.length > 0) {
-          stats[type] = {
-            count: values.length,
-            last: values[values.length - 1],
-            average: values.reduce((a, b) => a + b, 0) / values.length,
-            min: Math.min(...values),
-            max: Math.max(...values)
-          };
-        }
-      }
-    }
-    
-    return stats;
   }
 }
