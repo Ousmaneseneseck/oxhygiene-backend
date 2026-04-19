@@ -51,6 +51,7 @@ export class HealthController {
   @Get('my-measures/:type')
   @UseGuards(AuthGuard('jwt'))
   async getMyMeasuresByType(@Request() req, @Param('type') type: string) {
+    console.log(`📊 Récupération des mesures de type ${type} pour le patient ${req.user.id}`);
     return this.healthService.getUserMeasuresByType(req.user.id, type);
   }
 

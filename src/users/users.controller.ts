@@ -6,40 +6,47 @@ import { AuthGuard } from '@nestjs/passport';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // Récupérer tous les patients
   @Get()
   async findAll() {
     return this.usersService.findByRole('patient');
   }
 
+  // Récupérer tous les médecins
   @Get('doctors')
   async getDoctors() {
     return this.usersService.findByRole('doctor');
   }
 
+  // Changer le rôle d'un utilisateur
   @Post('role')
   async updateRole(@Body('userId') userId: number, @Body('role') role: string) {
     await this.usersService.updateRole(userId, role);
     return { message: 'Rôle mis à jour' };
   }
 
+  // Corriger le rôle du médecin (nettoie les doublons)
   @Post('fix-doctor-role')
   async fixDoctorRole() {
     await this.usersService.cleanDuplicateDoctors();
     return { message: 'Rôle médecin corrigé' };
   }
 
+  // Nettoyer les doublons
   @Post('clean-duplicates')
   async cleanDuplicates() {
     await this.usersService.cleanDuplicateDoctors();
     return { message: 'Doublons nettoyés' };
   }
 
+  // Forcer le rôle médecin (pour test)
   @Post('force-doctor')
   async forceDoctor() {
     await this.usersService.updateRole(1, 'doctor');
     return { message: 'Force doctor role' };
   }
 
+  // Mettre à jour le profil de l'utilisateur connecté
   @Put('profile')
   @UseGuards(AuthGuard('jwt'))
   async updateProfile(@Request() req, @Body() body: { 

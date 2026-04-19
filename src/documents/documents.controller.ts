@@ -10,6 +10,41 @@ import { extname } from 'path';
 export class DocumentsController {
   constructor(private documentsService: DocumentsService) {}
 
+  // Récupérer mes documents (patient ou médecin)
+  @Get('my-documents')
+  async getMyDocuments(@Request() req) {
+    console.log(`📄 Récupération des documents pour l'utilisateur ${req.user.id}`);
+    return this.documentsService.getUserDocuments(req.user.id);
+  }
+
+  // Récupérer les documents d'un patient (médecin uniquement)
+  @Get('patient-documents/:patientId')
+  async getPatientDocuments(@Param('patientId') patientId: string, @Request() req) {
+    if (req.user.role !== 'doctor') {
+      return { error: 'Non autorisé - Réservé aux médecins' };
+    }
+    console.log(`👨‍⚕️ Médecin consulte les documents du patient ${patientId}`);
+    return this.documentsService.getPatientDocuments(parseInt(patientId));
+  }
+
+  // Récupérer les documents par type
+  @Get('by-type/:type')
+  async getDocumentsByType(@Param('type') type: string, @Request() req) {
+    return this.documentsService.getDocumentsByType(req.user.id, type);
+  }
+
+  // Récupérer les documents envoyés par le médecin
+  @Get('from-doctor')
+  async getDocumentsFromDoctor(@Request() req) {
+    return this.documentsService.getDocumentsBySender(req.user.id, 'doctor');
+  }
+
+  // Récupérer les documents récents
+  @Get('recent/:limit')
+  async getRecentDocuments(@Param('limit') limit: string, @Request() req) {
+    return this.documentsService.getRecentDocuments(req.user.id, parseInt(limit));
+  }
+
   // Upload d'un document
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', {
@@ -57,39 +92,6 @@ export class DocumentsController {
     );
     
     return { success: true, data: result };
-  }
-
-  // Récupérer mes documents (patient)
-  @Get('my-documents')
-  async getMyDocuments(@Request() req) {
-    return this.documentsService.getUserDocuments(req.user.id);
-  }
-
-  // Récupérer les documents d'un patient (médecin uniquement)
-  @Get('patient-documents/:patientId')
-  async getPatientDocuments(@Param('patientId') patientId: string, @Request() req) {
-    if (req.user.role !== 'doctor') {
-      return { error: 'Non autorisé - Réservé aux médecins' };
-    }
-    return this.documentsService.getPatientDocuments(parseInt(patientId));
-  }
-
-  // Récupérer les documents par type
-  @Get('by-type/:type')
-  async getDocumentsByType(@Param('type') type: string, @Request() req) {
-    return this.documentsService.getDocumentsByType(req.user.id, type);
-  }
-
-  // Récupérer les documents envoyés par le médecin
-  @Get('from-doctor')
-  async getDocumentsFromDoctor(@Request() req) {
-    return this.documentsService.getDocumentsBySender(req.user.id, 'doctor');
-  }
-
-  // Récupérer les documents récents
-  @Get('recent/:limit')
-  async getRecentDocuments(@Param('limit') limit: string, @Request() req) {
-    return this.documentsService.getRecentDocuments(req.user.id, parseInt(limit));
   }
 
   // Supprimer un document
