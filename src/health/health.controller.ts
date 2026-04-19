@@ -6,14 +6,11 @@ import { AuthGuard } from '@nestjs/passport';
 export class HealthController {
   constructor(private healthService: HealthService) {}
 
-  // Endpoint de test (sans authentification)
-  @Post('test')
-  async test(@Body() body: any) {
-    console.log('✅ Test endpoint appelé');
-    return { success: true, body };
-  }
+  // ============================================
+  // ROUTES COMPATIBLES AVEC LE FRONTEND (React)
+  // ============================================
 
-  // Patient : Ajouter une mesure pour soi-même
+  // Patient : Ajouter une mesure (frontend appelle /add)
   @Post('add')
   @UseGuards(AuthGuard('jwt'))
   async addMeasure(@Request() req, @Body() body: { 
@@ -24,10 +21,7 @@ export class HealthController {
     diastolic?: string;
     note?: string;
   }) {
-    console.log('📊 Add measure appelé');
-    console.log('User ID:', req.user?.id);
-    console.log('Body:', body);
-    
+    console.log('📊 [ADD] Mesure ajoutée par patient:', req.user.id);
     const result = await this.healthService.addMeasure(
       req.user.id,
       body.type,
@@ -40,26 +34,79 @@ export class HealthController {
     return { success: true, data: result };
   }
 
-  // Patient : Récupérer ses propres mesures
+  // Patient : Récupérer ses mesures (frontend appelle /my-measures)
   @Get('my-measures')
   @UseGuards(AuthGuard('jwt'))
   async getMyMeasures(@Request() req) {
+    console.log('📊 [MY-MEASURES] Récupération des mesures pour patient:', req.user.id);
     return this.healthService.getUserMeasures(req.user.id);
   }
 
-  // Patient : Récupérer ses mesures par type (pour graphiques)
+  // Patient : Récupérer ses mesures par type pour graphiques (frontend appelle /my-measures/:type)
   @Get('my-measures/:type')
   @UseGuards(AuthGuard('jwt'))
   async getMyMeasuresByType(@Request() req, @Param('type') type: string) {
-    console.log(`📊 Récupération des mesures de type ${type} pour le patient ${req.user.id}`);
+    console.log(`📊 [MY-MEASURES/:TYPE] Récupération des mesures de type ${type} pour patient: ${req.user.id}`);
     return this.healthService.getUserMeasuresByType(req.user.id, type);
   }
+
+  // ============================================
+  // ROUTES EXISTANTES (compatibilité)
+  // ============================================
+
+  // Endpoint de test
+  @Post('test')
+  async test(@Body() body: any) {
+    console.log('✅ Test endpoint appelé');
+    return { success: true, body };
+  }
+
+  // Route existante: POST /health/measure
+  @Post('measure')
+  @UseGuards(AuthGuard('jwt'))
+  async addMeasureLegacy(@Request() req, @Body() body: any) {
+    console.log('📊 [MEASURE] Mesure ajoutée (legacy):', req.user.id);
+    return this.healthService.addMeasure(
+      req.user.id,
+      body.type,
+      body.value,
+      body.unit,
+      body.systolic,
+      body.diastolic,
+      body.note
+    );
+  }
+
+  // Route existante: GET /health/measures
+  @Get('measures')
+  @UseGuards(AuthGuard('jwt'))
+  async getMeasuresLegacy(@Request() req) {
+    console.log('📊 [MEASURES] Récupération des mesures (legacy):', req.user.id);
+    return this.healthService.getUserMeasures(req.user.id);
+  }
+
+  // Route existante: GET /health/stats
+  @Get('stats')
+  @UseGuards(AuthGuard('jwt'))
+  async getStats(@Request() req) {
+    return this.healthService.getUserStats(req.user.id);
+  }
+
+  // Route existante: GET /health/latest
+  @Get('latest')
+  @UseGuards(AuthGuard('jwt'))
+  async getLatest(@Request() req) {
+    return this.healthService.getLatestMeasures(req.user.id);
+  }
+
+  // ============================================
+  // ROUTES POUR MÉDECINS
+  // ============================================
 
   // Médecin : Récupérer les mesures d'un patient spécifique
   @Get('patient-measures/:patientId')
   @UseGuards(AuthGuard('jwt'))
   async getPatientMeasures(@Param('patientId') patientId: string, @Request() req) {
-    // Vérifier que l'utilisateur est un médecin
     if (req.user.role !== 'doctor') {
       return { error: 'Non autorisé - Réservé aux médecins' };
     }
@@ -67,7 +114,7 @@ export class HealthController {
     return this.healthService.getUserMeasures(parseInt(patientId));
   }
 
-  // Médecin : Récupérer les mesures d'un patient par type (pour graphiques)
+  // Médecin : Récupérer les mesures d'un patient par type (graphiques)
   @Get('patient-measures-graph/:patientId/:type')
   @UseGuards(AuthGuard('jwt'))
   async getPatientMeasuresForGraph(
@@ -94,13 +141,10 @@ export class HealthController {
     diastolic?: string;
     note?: string;
   }) {
-    // Vérifier que l'utilisateur est un médecin
     if (req.user.role !== 'doctor') {
       return { error: 'Non autorisé - Réservé aux médecins' };
     }
     console.log(`👨‍⚕️ Médecin ajoute une mesure pour le patient ${body.patientId}`);
-    console.log('Mesure:', body);
-    
     const result = await this.healthService.addMeasure(
       body.patientId,
       body.type,
@@ -127,48 +171,10 @@ export class HealthController {
     return this.healthService.getLatestMeasure(parseInt(patientId), type);
   }
 
-  // Supprimer une mesure (admin ou propriétaire)
-  @Post('delete/:id')
+  // Supprimer une mesure
+  @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   async deleteMeasure(@Param('id') id: string, @Request() req) {
     return this.healthService.deleteMeasure(parseInt(id), req.user.id);
-  }
-
-  // Récupérer les mesures dans une plage de dates
-  @Post('range/:patientId')
-  @UseGuards(AuthGuard('jwt'))
-  async getMeasuresByDateRange(
-    @Param('patientId') patientId: string,
-    @Body() body: { startDate: string; endDate: string },
-    @Request() req
-  ) {
-    if (req.user.role !== 'doctor' && parseInt(patientId) !== req.user.id) {
-      return { error: 'Non autorisé' };
-    }
-    return this.healthService.getMeasuresByDateRange(
-      parseInt(patientId),
-      new Date(body.startDate),
-      new Date(body.endDate)
-    );
-  }
-
-  // Récupérer la moyenne d'une mesure sur une période
-  @Get('average/:patientId/:type/:days')
-  @UseGuards(AuthGuard('jwt'))
-  async getAverageMeasure(
-    @Param('patientId') patientId: string,
-    @Param('type') type: string,
-    @Param('days') days: string,
-    @Request() req
-  ) {
-    if (req.user.role !== 'doctor' && parseInt(patientId) !== req.user.id) {
-      return { error: 'Non autorisé' };
-    }
-    const average = await this.healthService.getAverageMeasure(
-      parseInt(patientId),
-      type,
-      parseInt(days)
-    );
-    return { average, type, days: parseInt(days) };
   }
 }
