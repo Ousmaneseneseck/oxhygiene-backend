@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Request, Delete } from '@nestjs/common';
 import { HealthService } from './health.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -85,19 +85,19 @@ export class HealthController {
     return this.healthService.getUserMeasures(req.user.id);
   }
 
-  // Route existante: GET /health/stats
-  @Get('stats')
-  @UseGuards(AuthGuard('jwt'))
-  async getStats(@Request() req) {
-    return this.healthService.getUserStats(req.user.id);
-  }
+  // Route existante: GET /health/stats (commentée temporairement)
+  // @Get('stats')
+  // @UseGuards(AuthGuard('jwt'))
+  // async getStats(@Request() req) {
+  //   return this.healthService.getUserStats(req.user.id);
+  // }
 
-  // Route existante: GET /health/latest
-  @Get('latest')
-  @UseGuards(AuthGuard('jwt'))
-  async getLatest(@Request() req) {
-    return this.healthService.getLatestMeasures(req.user.id);
-  }
+  // Route existante: GET /health/latest (commentée temporairement)
+  // @Get('latest')
+  // @UseGuards(AuthGuard('jwt'))
+  // async getLatest(@Request() req) {
+  //   return this.healthService.getLatestMeasures(req.user.id);
+  // }
 
   // ============================================
   // ROUTES POUR MÉDECINS
