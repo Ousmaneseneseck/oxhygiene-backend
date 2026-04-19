@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: oxhygiene-backend-live
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        value: oxhygiene_super_secret_key_2025
+      - key: FRONTEND_URL
+        value: https://oxhygiene-app.pages.dev
+      - key: DATABASE_URL
+        value: sqlite:./oxhygiene.db
