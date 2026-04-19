@@ -11,9 +11,9 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  // Configuration CORS qui accepte TOUTES les origines (pour les tests)
+  // Configuration CORS qui accepte TOUTES les origines
   app.enableCors({
-    origin: '*', // ⚠️ Accepte toutes les origines
+    origin: '*',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -22,7 +22,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   await app.listen(port, '0.0.0.0');
   console.log(`✅ Backend running on port ${port}`);
-  console.log(`⚠️ CORS: toutes les origines sont autorisées (mode développement)`);
+  console.log(`⚠️ CORS: toutes les origines sont autorisées`);
   console.log(`📁 Uploads servis depuis: ${join(__dirname, '..', 'uploads')}`);
 }
 
