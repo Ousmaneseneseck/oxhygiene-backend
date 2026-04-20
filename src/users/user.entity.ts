@@ -29,6 +29,28 @@ export class User {
   @Column({ nullable: true, type: 'datetime' })
   otpExpires: Date | null;
 
+  // Nouveaux champs pour le profil patient
+  @Column({ nullable: true })
+  birthDate: string;
+
+  @Column({ nullable: true })
+  address: string;
+
+  @Column({ nullable: true })
+  city: string;
+
+  @Column({ nullable: true })
+  postalCode: string;
+
+  @Column({ nullable: true })
+  emergencyPhone: string;
+
+  @Column({ nullable: true })
+  insuranceNumber: string;
+
+  @Column({ nullable: true })
+  socialSecurityNumber: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
