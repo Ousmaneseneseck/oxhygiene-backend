@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from '../users/user.entity';
 
 @Entity('appointments')
 export class Appointment {
@@ -10,6 +11,14 @@ export class Appointment {
 
   @Column()
   doctorId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'doctorId' })
+  doctor: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'patientId' })
+  patient: User;
 
   @Column()
   date: string;

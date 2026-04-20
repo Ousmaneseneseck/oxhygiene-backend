@@ -24,20 +24,58 @@ export class AppointmentsService {
     return this.appointmentsRepository.save(appointment);
   }
 
-  // Récupérer tous les rendez-vous d'un patient
+  // Récupérer tous les rendez-vous d'un patient avec les infos du médecin
   async getPatientAppointments(patientId: number) {
-    return this.appointmentsRepository.find({
+    const appointments = await this.appointmentsRepository.find({
       where: { patientId },
-      order: { date: 'DESC', time: 'DESC' }
+      order: { date: 'DESC', time: 'DESC' },
+      relations: ['doctor']
     });
+    
+    // Enrichir avec les informations du médecin
+    return appointments.map(apt => ({
+      id: apt.id,
+      patientId: apt.patientId,
+      doctorId: apt.doctorId,
+      date: apt.date,
+      time: apt.time,
+      reason: apt.reason,
+      status: apt.status,
+      notes: apt.notes,
+      prescription: apt.prescription,
+      createdAt: apt.createdAt,
+      // Informations du médecin
+      doctorName: apt.doctor?.name || `Dr. ID ${apt.doctorId}`,
+      doctorSpecialty: apt.doctor?.specialty || 'Médecin généraliste',
+      doctorPhone: apt.doctor?.phone,
+      doctorEmail: apt.doctor?.email
+    }));
   }
 
-  // Récupérer tous les rendez-vous d'un médecin
+  // Récupérer tous les rendez-vous d'un médecin avec les infos du patient
   async getDoctorAppointments(doctorId: number) {
-    return this.appointmentsRepository.find({
+    const appointments = await this.appointmentsRepository.find({
       where: { doctorId },
-      order: { date: 'DESC', time: 'DESC' }
+      order: { date: 'DESC', time: 'DESC' },
+      relations: ['patient']
     });
+    
+    // Enrichir avec les informations du patient
+    return appointments.map(apt => ({
+      id: apt.id,
+      patientId: apt.patientId,
+      doctorId: apt.doctorId,
+      date: apt.date,
+      time: apt.time,
+      reason: apt.reason,
+      status: apt.status,
+      notes: apt.notes,
+      prescription: apt.prescription,
+      createdAt: apt.createdAt,
+      // Informations du patient
+      patientName: apt.patient?.name || `Patient #${apt.patientId}`,
+      patientPhone: apt.patient?.phone
+    }));
   }
 
   // Récupérer l'historique des patients consultés par un médecin
@@ -46,7 +84,8 @@ export class AppointmentsService {
     
     const appointments = await this.appointmentsRepository.find({
       where: { doctorId },
-      order: { date: 'DESC', time: 'DESC' }
+      order: { date: 'DESC', time: 'DESC' },
+      relations: ['patient']
     });
     
     const patientsMap = new Map();
@@ -56,7 +95,8 @@ export class AppointmentsService {
         patientsMap.set(apt.patientId, {
           id: apt.patientId,
           patientId: apt.patientId,
-          name: `Patient #${apt.patientId}`,
+          name: apt.patient?.name || `Patient #${apt.patientId}`,
+          phone: apt.patient?.phone,
           lastVisit: apt.date,
           totalVisits: 1,
           appointments: [apt]
@@ -88,13 +128,17 @@ export class AppointmentsService {
 
   // Récupérer un rendez-vous par son ID
   async findById(id: number) {
-    return this.appointmentsRepository.findOne({ where: { id } });
+    return this.appointmentsRepository.findOne({ 
+      where: { id },
+      relations: ['doctor', 'patient']
+    });
   }
 
   // Récupérer tous les rendez-vous (admin)
   async findAll() {
     return this.appointmentsRepository.find({
-      order: { date: 'DESC', time: 'DESC' }
+      order: { date: 'DESC', time: 'DESC' },
+      relations: ['doctor', 'patient']
     });
   }
 
@@ -109,7 +153,8 @@ export class AppointmentsService {
   async getAppointmentsByStatus(status: string) {
     return this.appointmentsRepository.find({
       where: { status },
-      order: { date: 'DESC', time: 'DESC' }
+      order: { date: 'DESC', time: 'DESC' },
+      relations: ['doctor', 'patient']
     });
   }
 
@@ -117,7 +162,8 @@ export class AppointmentsService {
   async getDoctorAppointmentsByStatus(doctorId: number, status: string) {
     return this.appointmentsRepository.find({
       where: { doctorId, status },
-      order: { date: 'DESC', time: 'DESC' }
+      order: { date: 'DESC', time: 'DESC' },
+      relations: ['patient']
     });
   }
 
@@ -125,7 +171,8 @@ export class AppointmentsService {
   async getPatientAppointmentsByStatus(patientId: number, status: string) {
     return this.appointmentsRepository.find({
       where: { patientId, status },
-      order: { date: 'DESC', time: 'DESC' }
+      order: { date: 'DESC', time: 'DESC' },
+      relations: ['doctor']
     });
   }
 }
