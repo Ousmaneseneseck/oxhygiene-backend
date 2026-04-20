@@ -12,9 +12,10 @@ export class UsersController {
     return this.usersService.findByRole('patient');
   }
 
-  // Récupérer tous les médecins
+  // Récupérer tous les médecins (pour la liste déroulante)
   @Get('doctors')
   async getDoctors() {
+    console.log('📋 Liste des médecins demandée');
     return this.usersService.findByRole('doctor');
   }
 
