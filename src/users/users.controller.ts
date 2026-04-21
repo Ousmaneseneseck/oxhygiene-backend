@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Body, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
+import { User } from './user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -62,28 +63,18 @@ export class UsersController {
   }
 
   // Mettre à jour le profil de l'utilisateur connecté
+  // Utilise Partial<User> pour accepter uniquement les champs fournis
   @Put('profile')
   @UseGuards(AuthGuard('jwt'))
-  async updateProfile(@Request() req, @Body() body: { 
-    name: string; 
-    email: string; 
-    bloodType: string; 
-    specialty: string;
-    bio: string;
-    photoUrl: string;
-    diplomas: string[];
-    certifications: string[];
-    languages: string[];
-    consultationFee: number;
-    experienceYears: number;
-    availability: string[];
-    cabinetAddress: string;
-    cabinetPhone: string;
-    website: string;
-  }) {
+  async updateProfile(@Request() req, @Body() body: Partial<User>) {
     console.log('📝 Mise à jour profil reçue:', body);
     const result = await this.usersService.updateProfile(req.user.id, body);
     console.log('✅ Profil mis à jour:', result);
+    // Ne pas renvoyer les champs sensibles
+    if (result) {
+      const { otpCode, otpExpires, ...safeUser } = result;
+      return safeUser;
+    }
     return result;
   }
 }

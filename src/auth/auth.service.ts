@@ -50,40 +50,40 @@ export class AuthService {
     if (!user.name) {
       if (user.role === 'doctor') {
         if (phone === '+221779999999') {
-          await this.usersService.updateProfile(user.id, { 
-            name: 'Dr. Fall', 
-            email: 'dr.fall@oxhygiene.com', 
-            bloodType: 'O+', 
-            specialty: 'Médecine Générale' 
+          await this.usersService.updateProfile(user.id, {
+            name: 'Dr. Fall',
+            email: 'dr.fall@oxhygiene.com',
+            bloodType: 'O+',
+            specialty: 'Médecine Générale'
           });
         } else if (phone === '+221779999991') {
-          await this.usersService.updateProfile(user.id, { 
-            name: 'Dr. Sophie Martin', 
-            email: 'sophie.martin@oxhygiene.com', 
-            bloodType: 'A+', 
-            specialty: 'Cardiologie' 
+          await this.usersService.updateProfile(user.id, {
+            name: 'Dr. Sophie Martin',
+            email: 'sophie.martin@oxhygiene.com',
+            bloodType: 'A+',
+            specialty: 'Cardiologie'
           });
         } else if (phone === '+221779999992') {
-          await this.usersService.updateProfile(user.id, { 
-            name: 'Dr. Amadou Diop', 
-            email: 'amadou.diop@oxhygiene.com', 
-            bloodType: 'O+', 
-            specialty: 'Pédiatrie' 
+          await this.usersService.updateProfile(user.id, {
+            name: 'Dr. Amadou Diop',
+            email: 'amadou.diop@oxhygiene.com',
+            bloodType: 'O+',
+            specialty: 'Pédiatrie'
           });
         } else {
-          await this.usersService.updateProfile(user.id, { 
-            name: 'Dr. Médecin', 
-            email: '', 
-            bloodType: '', 
-            specialty: 'Généraliste' 
+          await this.usersService.updateProfile(user.id, {
+            name: 'Dr. Médecin',
+            email: '',
+            bloodType: '',
+            specialty: 'Généraliste'
           });
         }
       } else {
-        await this.usersService.updateProfile(user.id, { 
-          name: 'Patient', 
-          email: '', 
-          bloodType: '', 
-          specialty: '' 
+        await this.usersService.updateProfile(user.id, {
+          name: 'Patient',
+          email: '',
+          bloodType: '',
+          specialty: ''
         });
       }
       // Recharger l'utilisateur après mise à jour
