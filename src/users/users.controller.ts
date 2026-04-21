@@ -34,6 +34,17 @@ export class UsersController {
     return safeUser;
   }
 
+  // Récupérer un utilisateur par ID (public pour les profils médecins)
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    const user = await this.usersService.findById(parseInt(id));
+    if (!user) {
+      return { error: 'Utilisateur non trouvé' };
+    }
+    const { otpCode, otpExpires, ...safeUser } = user;
+    return safeUser;
+  }
+
   // Changer le rôle d'un utilisateur
   @Post('role')
   async updateRole(@Body('userId') userId: number, @Body('role') role: string) {
@@ -62,15 +73,40 @@ export class UsersController {
     return { message: 'Force doctor role' };
   }
 
-  // Mettre à jour le profil de l'utilisateur connecté
-  // Utilise Partial<User> pour accepter uniquement les champs fournis
+  // Mettre à jour le profil de l'utilisateur connecté (patient ou médecin)
   @Put('profile')
   @UseGuards(AuthGuard('jwt'))
   async updateProfile(@Request() req, @Body() body: Partial<User>) {
     console.log('📝 Mise à jour profil reçue:', body);
     const result = await this.usersService.updateProfile(req.user.id, body);
     console.log('✅ Profil mis à jour:', result);
-    // Ne pas renvoyer les champs sensibles
+    if (result) {
+      const { otpCode, otpExpires, ...safeUser } = result;
+      return safeUser;
+    }
+    return result;
+  }
+
+  // Mettre à jour spécifiquement le profil médecin (diplômes, expérience, etc.)
+  @Put('doctor-profile')
+  @UseGuards(AuthGuard('jwt'))
+  async updateDoctorProfile(@Request() req, @Body() body: {
+    bio: string;
+    photoUrl: string;
+    diplomas: string[];
+    certifications: string[];
+    languages: string[];
+    consultationFee: number;
+    experienceYears: number;
+    availability: string[];
+    cabinetAddress: string;
+    cabinetPhone: string;
+    website: string;
+    registrationNumber: string;
+  }) {
+    console.log('📝 Mise à jour profil médecin:', body);
+    const result = await this.usersService.updateProfile(req.user.id, body);
+    console.log('✅ Profil médecin mis à jour:', result);
     if (result) {
       const { otpCode, otpExpires, ...safeUser } = result;
       return safeUser;
