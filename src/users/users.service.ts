@@ -63,7 +63,26 @@ export class UsersService {
     name: string; 
     email: string; 
     bloodType: string; 
-    specialty: string 
+    specialty: string;
+    bio: string;
+    photoUrl: string;
+    diplomas: string[];
+    certifications: string[];
+    languages: string[];
+    consultationFee: number;
+    experienceYears: number;
+    availability: string[];
+    birthDate: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    emergencyPhone: string;
+    insuranceNumber: string;
+    socialSecurityNumber: string;
+    registrationNumber: string;
+    cabinetAddress: string;
+    cabinetPhone: string;
+    website: string;
   }): Promise<User | null> {
     await this.usersRepository.update({ id: userId }, data);
     return this.findById(userId);

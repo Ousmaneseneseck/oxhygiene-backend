@@ -19,6 +19,20 @@ export class UsersController {
     return this.usersService.findByRole('doctor');
   }
 
+  // Récupérer le profil de l'utilisateur connecté
+  @Get('profile')
+  @UseGuards(AuthGuard('jwt'))
+  async getProfile(@Request() req) {
+    console.log('📋 Récupération du profil pour userId:', req.user.id);
+    const user = await this.usersService.findById(req.user.id);
+    if (!user) {
+      return { error: 'Utilisateur non trouvé' };
+    }
+    // Ne pas renvoyer les champs sensibles
+    const { otpCode, otpExpires, ...safeUser } = user;
+    return safeUser;
+  }
+
   // Changer le rôle d'un utilisateur
   @Post('role')
   async updateRole(@Body('userId') userId: number, @Body('role') role: string) {
@@ -54,7 +68,18 @@ export class UsersController {
     name: string; 
     email: string; 
     bloodType: string; 
-    specialty: string 
+    specialty: string;
+    bio: string;
+    photoUrl: string;
+    diplomas: string[];
+    certifications: string[];
+    languages: string[];
+    consultationFee: number;
+    experienceYears: number;
+    availability: string[];
+    cabinetAddress: string;
+    cabinetPhone: string;
+    website: string;
   }) {
     console.log('📝 Mise à jour profil reçue:', body);
     const result = await this.usersService.updateProfile(req.user.id, body);
