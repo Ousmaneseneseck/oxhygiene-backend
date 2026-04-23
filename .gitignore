@@ -1,8 +1,5 @@
-node_modules/
+﻿node_modules/
 dist/
 .env
-.env.backup
-uploads/
-*.db
+oxhygiene.db
 *.log
-.DS_Store
